@@ -1,6 +1,8 @@
 <script>
 	import Other from './Other.svelte';
 	export let name;
+
+	let isShowing = true;
 </script>
 
 <style>
@@ -9,8 +11,13 @@
 	}
 </style>
 
-<h1>Hello {name}!</h1>
+<h1>svelte-concurrency</h1>
 
-<Other wat="WAT" />
+<button on:click={() => isShowing = !isShowing }>Toggle</button>
+
+{#if isShowing}
+	<Other />
+{/if}
+
 
 

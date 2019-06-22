@@ -2,21 +2,25 @@ import { Task as BaseTask } from './external/task/task';
 import { TaskInstance } from "./task-instance";
 import { TaskInstanceExecutor } from "./external/task-instance/executor";
 import { SVELTE_ENVIRONMENT } from './environment';
+import { writable } from 'svelte/store';
+import { CancelRequest } from './external/task-instance/cancelation';
 import { CANCEL_KIND_LIFESPAN_END } from './external/task-instance/cancelation';
-import { cleanupOnDestroy } from './external/lifespan';
 
 export class Task extends BaseTask {
   constructor(options) {
     super(options);
-    cleanupOnDestroy(this.context, this, 'componentWillUnmount', 'onHostTeardown', {
-      reason: 'the object it lives on was destroyed or unrendered',
-      cancelRequestKind: CANCEL_KIND_LIFESPAN_END,
-    });
+    this._state = {};
+    this._store = writable(null);
+    this.onState({ numRunning: 0, numQueued: 0 });
   }
 
   onHostTeardown() {
+    if (this.isDestroying) { return; }
     this.isDestroying = true;
-    this.context.__rcIsUnmounting__ = true;
+    let cancelRequest = new CancelRequest(CANCEL_KIND_LIFESPAN_END,
+                                          'the component it lives on was unrendered');
+    this.cancelAll(this.guid, cancelRequest)
+
     this.cancelAll();
   }
 
@@ -32,7 +36,7 @@ export class Task extends BaseTask {
       hasEnabledEvents: false,
     });
 
-    if (this.isDestroying || this.context.__rcIsUnmounting__) {
+    if (this.isDestroying) {
       taskInstance.cancel();
     }
 
@@ -40,14 +44,14 @@ export class Task extends BaseTask {
     return taskInstance;
   }
 
-  get isRunning() {
-    assertTrackingState(this, 'isRunning');
-    return this.numRunning > 0;
+  subscribe(v) {
+    return this._store.subscribe(v);
   }
 
-  get isIdle() {
-    assertTrackingState(this, 'isIdle');
-    return this.numRunning == 0;
+  onState(state) {
+    Object.assign(this._state, state);
+    this._state.isRunning = this._state.numRunning > 0;
+    this._store.set(this._state);
   }
 }
 
