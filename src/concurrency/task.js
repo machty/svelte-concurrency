@@ -19,9 +19,7 @@ export class Task extends BaseTask {
     this.isDestroying = true;
     let cancelRequest = new CancelRequest(CANCEL_KIND_LIFESPAN_END,
                                           'the component it lives on was unrendered');
-    this.cancelAll(this.guid, cancelRequest)
-
-    this.cancelAll();
+    this.scheduler.cancelAll(this.guid, cancelRequest)
   }
 
   _perform(...args) {
