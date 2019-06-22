@@ -1,6 +1,6 @@
 ## svelte-concurrency experiment
 
-This was created with create-svelte-app, and since I couldn't figure out how to import from node_modules with the default create-svelte-app webpack config, here's my hacky approach:
+I'm using this project to build up and eventually extract `svelte-concurrency` as it own library. Here's the layout:
 
 1. `src/concurrency.js` and `src/concurrency/**` are intended to house all of what will become svelte-concurrency
 2. svelte-concurrency will use a shared concurrency lib (along with the next version of e-c). All of the shared concurrency lib stuff lives in `src/concurrency/external`
